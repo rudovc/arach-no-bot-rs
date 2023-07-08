@@ -1,8 +1,10 @@
 mod commands;
+mod constants;
 mod handlers;
-mod types;
+pub mod types;
 
 use dotenv::dotenv;
+
 use poise::serenity_prelude as serenity;
 
 #[tokio::main]
@@ -12,10 +14,10 @@ async fn main() {
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
             commands: vec![commands::age(), commands::hahas()],
-            event_handler: |_ctx, event, _, _| {
+            event_handler: |ctx, event, _, _| {
                 Box::pin(async move {
                     if let poise::Event::Message { new_message } = event {
-                        handlers::message(new_message);
+                        handlers::message(new_message, Some(ctx)).await?;
                     }
                     Ok(())
                 })
