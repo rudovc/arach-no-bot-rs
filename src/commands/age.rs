@@ -7,7 +7,7 @@ use poise::serenity_prelude as serenity;
 pub async fn age(
     ctx: types::PoiseContext<'_>,
     #[description = "Selected user"] user: Option<serenity::User>,
-) -> Result<(), types::PoiseError> {
+) -> anyhow::Result<()> {
     let u = user.as_ref().unwrap_or_else(|| ctx.author());
     let response = format!("{}'s account was created at {}", u.name, u.created_at());
     ctx.say(response).await?;
