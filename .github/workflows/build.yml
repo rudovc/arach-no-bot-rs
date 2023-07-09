@@ -1,0 +1,61 @@
+on:
+  workflow_call:
+    outputs:
+      tag:
+        value: ${{ jobs.build.outputs.arch }}-${{ jobs.build.outputs.vendor }}-${{ jobs.build.outputs.os }}${{ jobs.build.outputs.environment }}
+      os:
+        value: ${{ jobs.build.outputs.os }}
+
+name: Build release
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - arch: armv7
+            vendor: unknown
+            os: linux
+            environment: -musleabihf
+
+    outputs:
+      arch: ${{ matrix.arch }}
+      vendor: ${{ matrix.vendor }}
+      os: ${{ matrix.os }}
+      environment: ${{ matrix.environment }}
+
+    env:
+      CARGO_TERM_COLOR: always
+      CARGO_INCREMENTAL: 0
+      RUST_BACKTRACE: short
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up target
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: ${{ matrix.arch }}-${{ matrix.vendor }}-${{ matrix.os }}${{ matrix.environment }}
+          override: true
+
+      - name: Cache build
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: 'build_release'
+
+      - name: Build release for target
+        uses: actions-rs/cargo@v1
+        with:
+          use-cross: true
+          command: build
+          args: --target ${{ matrix.arch }}-${{ matrix.vendor }}-${{ matrix.os }}${{ matrix.environment }} --release
+
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.arch }}-${{ matrix.vendor }}-${{ matrix.os }}${{ matrix.environment }}_binary
+          path: |
+            ./target/${{ matrix.arch }}-${{ matrix.vendor }}-${{ matrix.os }}${{ matrix.environment }}/release/arachnobot

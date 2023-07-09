@@ -92,7 +92,7 @@ mod tests {
     use super::*;
 
     #[tokio::test]
-    async fn should_only_read_messages_in_specific_channels() {
+    async fn handler_should_only_read_messages_in_specific_channels() {
         let mut test_message = Message {
             channel_id: &0,
             content: &String::from("Irrelevant content"),
