@@ -1,40 +1,19 @@
 mod commands;
 mod constants;
+mod database;
+mod framework;
 mod handlers;
 pub mod types;
 
 use dotenv::dotenv;
 
-use poise::serenity_prelude as serenity;
-
 #[tokio::main]
 async fn main() {
     dotenv().ok();
 
-    let framework = poise::Framework::builder()
-        .options(poise::FrameworkOptions {
-            commands: vec![commands::age(), commands::hahas()],
-            event_handler: |ctx, event, _, _| {
-                Box::pin(async move {
-                    if let poise::Event::Message { new_message } = event {
-                        handlers::message(new_message, Some(ctx)).await?;
-                    }
-                    Ok(())
-                })
-            },
-            ..Default::default()
-        })
-        .token(std::env::var("DISCORD_TOKEN").expect("missing DISCORD_TOKEN"))
-        .intents(
-            serenity::GatewayIntents::non_privileged()
-                .union(serenity::GatewayIntents::privileged()),
-        )
-        .setup(|ctx, _ready, framework| {
-            Box::pin(async move {
-                poise::builtins::register_globally(ctx, &framework.options().commands).await?;
-                Ok(types::Data {})
-            })
-        });
+    let database = database::get_database();
+
+    let framework = framework::get_framework(database).await;
 
     framework.run().await.unwrap();
 }
