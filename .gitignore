@@ -1,5 +1,4 @@
 .vscode
 
 /target
-bacon.toml
 .env

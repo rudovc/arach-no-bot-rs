@@ -1,5 +1,6 @@
 use crate::constants;
-use ::anyhow::anyhow;
+use anyhow::anyhow;
+use anyhow::Result;
 
 use poise::serenity_prelude as serenity;
 
@@ -14,7 +15,7 @@ impl<'a> From<&'a Message<'_>> for Message<'a> {
     fn from(message: &'a Message) -> Message<'a> {
         Message {
             channel_id: message.channel_id,
-            content: &message.content,
+            content: message.content,
             message: message.message,
         }
     }
@@ -34,14 +35,14 @@ fn scan_for_r_dtg(content: &str) -> Result<bool, regex::Error> {
     Ok(regex::Regex::new(constants::R_DTG_REGEX)?.is_match(content))
 }
 
-pub async fn message<'a>(
+pub async fn handle<'a>(
     message: impl Into<Message<'a>>,
     ctx: Option<
         impl serenity::CacheHttp
             + std::convert::AsRef<poise::serenity_prelude::Cache>
             + std::convert::AsRef<poise::serenity_prelude::Http>,
     >,
-) -> anyhow::Result<bool> {
+) -> Result<bool> {
     let Message {
         channel_id,
         content,
@@ -92,32 +93,32 @@ mod tests {
     use super::*;
 
     #[tokio::test]
-    async fn handler_should_only_read_messages_in_specific_channels() {
+    async fn test_handler_only_read_messages_in_specific_channels() {
         let mut test_message = Message {
             channel_id: &0,
             content: &String::from("Irrelevant content"),
             message: None,
         };
 
-        let result = message(&test_message, None::<serenity::Context>).await;
+        let result = handle(&test_message, None::<serenity::Context>).await;
 
         assert!(result.is_err_and(|e| e.to_string().contains("is not in monitored channel list")));
 
         test_message.channel_id = &constants::channels::DENSITY_THE_GAME_ID;
 
-        let result = message(&test_message, None::<serenity::Context>).await;
+        let result = handle(&test_message, None::<serenity::Context>).await;
 
         assert!(!result.unwrap());
 
         test_message.channel_id = &constants::channels::BOT_TESTING_ID;
 
-        let result = message(&test_message, None::<serenity::Context>).await;
+        let result = handle(&test_message, None::<serenity::Context>).await;
 
         assert!(!result.unwrap());
     }
 
     #[test]
-    fn regex_should_only_flag_messages_with_r_dtg() {
+    fn test_flag_messages_with_r_dtg() {
         let test_content = "Does not include the Bad Word";
 
         assert!(!scan_for_r_dtg(test_content).unwrap());
