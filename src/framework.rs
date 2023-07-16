@@ -10,7 +10,7 @@ pub async fn get_framework(
 ) -> poise::FrameworkBuilder<database::Database, Error> {
     poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            commands: vec![commands::age(), commands::hahas()],
+            commands: commands::get_slash_commands(),
             event_handler: handlers::event,
             ..Default::default()
         })
