@@ -5,12 +5,14 @@ edition = "2021"
 
 [profile.dev]
 opt-level = 0
-debug = false
 
 [profile.release]
 opt-level = 3
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+staging = []
 
 [dependencies]
 anyhow = "1.0.71"

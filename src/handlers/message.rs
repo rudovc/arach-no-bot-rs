@@ -1,4 +1,5 @@
 use crate::constants;
+use crate::staging;
 use anyhow::anyhow;
 use anyhow::Result;
 
@@ -49,15 +50,13 @@ pub async fn handle<'a>(
         message,
     } = message.into();
 
-    let is_private_testing_channel = *{
-        &std::env::var("PRIVATE_TESTING_ID")
-            .is_ok_and(|id_string| id_string.parse::<u64>().is_ok_and(|id| &id == channel_id))
-    };
+    let is_testing_channel = staging::is_testing_channel(match message {
+        Some(message) => message.channel_id,
+        None => serenity::ChannelId::from(*channel_id),
+    });
 
-    match (*channel_id, is_private_testing_channel) {
-        (constants::channels::BOT_TESTING_ID, _)
-        | (constants::channels::DENSITY_THE_GAME_ID, _)
-        | (_, true) => {
+    match (*channel_id, is_testing_channel) {
+        (constants::channels::DENSITY_THE_GAME_ID, false) | (_, true) => {
             let has_match = scan_for_r_dtg(content)?;
 
             if let (true, Some(message), Some(ctx)) = (has_match, message, ctx) {
@@ -65,19 +64,16 @@ pub async fn handle<'a>(
                     .guild(&ctx)
                     .ok_or_else(|| anyhow!("Did not find guild for message id: {}.", message.id))?;
 
-                let emoji = guild
-                    .emoji(
-                        &ctx,
-                        serenity::EmojiId::from(if is_private_testing_channel {
-                            constants::TESTING_EMOJI_ID
-                        } else {
-                            constants::HMM_EMOJI_ID
-                        }),
+                let emoji = if is_testing_channel {
+                    serenity::ReactionType::Unicode("🤖".to_owned())
+                } else {
+                    serenity::ReactionType::from(
+                        guild
+                            .emoji(&ctx, serenity::EmojiId::from(constants::HMM_EMOJI_ID))
+                            .await?,
                     )
-                    .await?;
-                {
-                    message.react(&ctx, emoji).await?;
-                }
+                };
+                message.react(&ctx, emoji).await?;
             }
 
             Ok(has_match)
@@ -105,12 +101,6 @@ mod tests {
         assert!(result.is_err_and(|e| e.to_string().contains("is not in monitored channel list")));
 
         test_message.channel_id = &constants::channels::DENSITY_THE_GAME_ID;
-
-        let result = handle(&test_message, None::<serenity::Context>).await;
-
-        assert!(!result.unwrap());
-
-        test_message.channel_id = &constants::channels::BOT_TESTING_ID;
 
         let result = handle(&test_message, None::<serenity::Context>).await;
 

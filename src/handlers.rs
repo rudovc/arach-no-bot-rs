@@ -2,8 +2,9 @@ pub mod message;
 pub mod reaction;
 
 use crate::database;
+use crate::staging;
 use crate::types::ReactionInteraction;
-use anyhow::{Error, Result};
+use anyhow::{anyhow, Error, Result};
 use poise::event::Event;
 use poise::serenity_prelude as serenity;
 
@@ -16,6 +17,12 @@ pub fn event<'a>(
     Box::pin(async move {
         match event {
             Event::Message { new_message } => {
+                if !staging::is_allowed_channel_in_current_mode(new_message.channel_id) {
+                    return Err(anyhow!(
+                        "Event fired in disallowed channel for current mode."
+                    ));
+                }
+
                 let result = message::handle(new_message, Some(ctx)).await;
 
                 println!(
@@ -30,6 +37,12 @@ pub fn event<'a>(
             Event::ReactionAdd {
                 add_reaction: reaction,
             } => {
+                if !staging::is_allowed_channel_in_current_mode(reaction.channel_id) {
+                    return Err(anyhow!(
+                        "Event fired in disallowed channel for current mode."
+                    ));
+                }
+
                 let result = reaction::handle(
                     ReactionInteraction::Add(reaction.to_owned()),
                     Some(ctx),
@@ -49,6 +62,12 @@ pub fn event<'a>(
             Event::ReactionRemove {
                 removed_reaction: reaction,
             } => {
+                if !staging::is_allowed_channel_in_current_mode(reaction.channel_id) {
+                    return Err(anyhow!(
+                        "Event fired in disallowed channel for current mode."
+                    ));
+                }
+
                 let result = reaction::handle(
                     ReactionInteraction::Remove(reaction.to_owned()),
                     Some(ctx),

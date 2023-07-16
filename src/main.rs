@@ -3,13 +3,15 @@ mod constants;
 mod database;
 mod framework;
 mod handlers;
+mod staging;
 pub mod types;
-
-use dotenv::dotenv;
 
 #[tokio::main]
 async fn main() {
-    dotenv().ok();
+    #[cfg(feature = "staging")]
+    {
+        dotenv::from_filename(".env.staging").ok();
+    }
 
     let database = database::get_database();
 
