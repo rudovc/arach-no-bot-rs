@@ -5,14 +5,14 @@ use poise::serenity_prelude as serenity;
 pub struct UserRecord {
     pub name: String,
     #[serde(skip_serializing)]
-    pub hahas_count: u32,
+    pub haha_count: u32,
 }
 
 impl UserRecord {
-    pub fn new(name: &str, hahas_count: Option<u32>) -> Self {
+    pub fn new(name: &str, haha_count: Option<u32>) -> Self {
         UserRecord {
             name: name.to_owned(),
-            hahas_count: hahas_count.unwrap_or(0),
+            haha_count: haha_count.unwrap_or(0),
         }
     }
 }
@@ -42,11 +42,11 @@ mod tests {
         let user_record = UserRecord::new("Test User", Some(0));
 
         assert_eq!(user_record.name, "Test User");
-        assert_eq!(user_record.hahas_count, 0);
+        assert_eq!(user_record.haha_count, 0);
 
         let user_record = UserRecord::new("Other User", None);
 
         assert_eq!(user_record.name, "Other User");
-        assert_eq!(user_record.hahas_count, 0);
+        assert_eq!(user_record.haha_count, 0);
     }
 }
