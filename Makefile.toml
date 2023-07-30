@@ -5,14 +5,24 @@ args = ["fmt", "--", "--emit=files"]
 
 [tasks.clean]
 command = "cargo"
-args = ["clean"]
+args = ["clean", "--release"]
 
 [tasks.build]
 command = "cargo"
 args = ["build"]
 dependencies = ["clean"]
 
-[tasks.test]
+[tasks.test-prod]
 command = "cargo"
 args = ["test"]
-dependencies = ["clean"]
+
+[tasks.test-staging]
+command = "cargo"
+args = ["test", "--features=staging"]
+
+[tasks.test]
+dependencies = [
+    "test-staging",
+    "test-prod"
+]
+

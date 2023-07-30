@@ -4,7 +4,10 @@ pub mod reaction;
 use crate::database;
 use crate::staging;
 use crate::types::ReactionInteraction;
-use anyhow::{anyhow, Error, Result};
+use color_eyre::{
+    eyre::{eyre, Error},
+    Result,
+};
 use poise::event::Event;
 use poise::serenity_prelude as serenity;
 
@@ -18,12 +21,10 @@ pub fn event<'a>(
         match event {
             Event::Message { new_message } => {
                 if !staging::is_allowed_channel_in_current_mode(new_message.channel_id) {
-                    return Err(anyhow!(
-                        "Event fired in disallowed channel for current mode."
-                    ));
+                    return Err(eyre!("Event fired in disallowed channel for current mode."));
                 }
 
-                let result = message::handle(new_message, Some(ctx)).await;
+                let result = message::handle(new_message.to_owned(), ctx).await;
 
                 println!(
                     "{:?}",
@@ -32,23 +33,18 @@ pub fn event<'a>(
                     } else {
                         result.unwrap_err().to_string()
                     }
-                )
+                );
             }
             Event::ReactionAdd {
                 add_reaction: reaction,
             } => {
                 if !staging::is_allowed_channel_in_current_mode(reaction.channel_id) {
-                    return Err(anyhow!(
-                        "Event fired in disallowed channel for current mode."
-                    ));
+                    return Err(eyre!("Event fired in disallowed channel for current mode."));
                 }
 
-                let result = reaction::handle(
-                    ReactionInteraction::Add(reaction.to_owned()),
-                    Some(ctx),
-                    framework.user_data,
-                )
-                .await;
+                let result =
+                    reaction::handle(ReactionInteraction::Add, reaction, ctx, framework.user_data)
+                        .await;
 
                 println!(
                     "{:?}",
@@ -57,20 +53,19 @@ pub fn event<'a>(
                     } else {
                         result.unwrap_err().to_string()
                     }
-                )
+                );
             }
             Event::ReactionRemove {
                 removed_reaction: reaction,
             } => {
                 if !staging::is_allowed_channel_in_current_mode(reaction.channel_id) {
-                    return Err(anyhow!(
-                        "Event fired in disallowed channel for current mode."
-                    ));
+                    return Err(eyre!("Event fired in disallowed channel for current mode."));
                 }
 
                 let result = reaction::handle(
-                    ReactionInteraction::Remove(reaction.to_owned()),
-                    Some(ctx),
+                    ReactionInteraction::Remove,
+                    reaction,
+                    ctx,
                     framework.user_data,
                 )
                 .await;
@@ -82,7 +77,7 @@ pub fn event<'a>(
                     } else {
                         result.unwrap_err().to_string()
                     }
-                )
+                );
             }
             _ => {}
         }

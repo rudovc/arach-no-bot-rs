@@ -1,5 +1,5 @@
 use crate::database;
-use poise::serenity_prelude as serenity;
+use color_eyre::eyre::Error;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct UserRecord {
@@ -17,36 +17,25 @@ impl UserRecord {
     }
 }
 
-pub type PoiseContext<'a> = poise::Context<'a, database::Database, anyhow::Error>;
+pub type PoiseContext<'a> = poise::Context<'a, database::Database, Error>;
 
 pub enum ReactionInteraction {
-    Add(serenity::Reaction),
-    Remove(serenity::Reaction),
-}
-
-impl<'a> From<&'a ReactionInteraction> for &'a serenity::Reaction {
-    fn from(val: &'a ReactionInteraction) -> Self {
-        match val {
-            ReactionInteraction::Add(reaction) => reaction,
-            ReactionInteraction::Remove(reaction) => reaction,
-        }
-    }
+    Add,
+    Remove,
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    
+    use test_case::test_case;
 
-    #[test]
-    fn test_user_record_constructor() {
-        let user_record = UserRecord::new("Test User", Some(0));
-
-        assert_eq!(user_record.name, "Test User");
-        assert_eq!(user_record.haha_count, 0);
-
-        let user_record = UserRecord::new("Other User", None);
-
-        assert_eq!(user_record.name, "Other User");
-        assert_eq!(user_record.haha_count, 0);
+    #[test_case(Some(0), "Test User", 0 ; "When user has 0 hahas")]
+    #[test_case(Some(14), "Test User", 14 ; "When user has some hahas")]
+    #[test_case(None, "Test User", 0 ; "When user has None hahas")]
+    fn test_user_record_constructor(count: Option<u32>, name: &str, expected_count: u32) {
+        let user_record = UserRecord::new(name, count);
+        assert_eq!(user_record.name, name);
+        assert_eq!(user_record.haha_count, expected_count);
     }
 }

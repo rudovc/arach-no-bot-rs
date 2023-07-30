@@ -1,7 +1,7 @@
 use crate::commands;
 use crate::database;
 use crate::handlers;
-use anyhow::Error;
+use color_eyre::eyre::Error;
 use firebase_rs as firebase;
 use poise::serenity_prelude as serenity;
 

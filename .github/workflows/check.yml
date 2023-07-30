@@ -1,6 +1,8 @@
 name: Build and test
 on:
   workflow_call:
+  push:
+    branches: ['main']
   pull_request:
     branches: ['main']
 
@@ -14,13 +16,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
       - name: Set up toolchain
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
+
+      - uses: davidB/rust-cargo-make@v1
+      
+      - name: Checkout
+        uses: actions/checkout@v3
 
       - name: Cache build
         uses: Swatinem/rust-cache@v2
@@ -30,8 +34,5 @@ jobs:
       - name: Build
         run: cargo build
 
-      - name: Compile tests
-        run: cargo test --no-run
-
       - name: Run tests
-        run: cargo test --no-fail-fast
+        run: cargo make test
