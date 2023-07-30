@@ -5,7 +5,7 @@ use firebase_rs as firebase;
 
 #[derive(Debug)]
 pub struct Response {
-    data: String,
+    pub data: String,
 }
 
 // Workaround for the firebase-rs library not implementing functionality to perform a PUT request, nor exposing an interface to do it manually

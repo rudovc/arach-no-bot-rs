@@ -6,9 +6,10 @@ use poise::serenity_prelude::{Cache, CacheHttp, Http, Reaction, ReactionType, Us
 
 fn match_haha_emoji(emoji_id: &u64) -> Result<()> {
     if !constants::HAHA_EMOJI_IDS.contains(emoji_id) {
-        return Err(eyre!("Emoji does not match haha emoji."));
+        Err(eyre!("Emoji does not match haha emoji."))
+    } else {
+        Ok(())
     }
-    Ok(())
 }
 
 fn check_for_self_reaction(
@@ -36,7 +37,7 @@ pub async fn handle<'a>(
     reaction: &Reaction,
     ctx: impl CacheHttp + std::convert::AsRef<Cache> + std::convert::AsRef<Http>,
     database: &Database,
-) -> Result<()> {
+) -> Result<Option<String>> {
     if let ReactionType::Custom { id: emoji_id, .. } = &reaction.emoji {
         let message = reaction.message(ctx).await?;
 
@@ -54,13 +55,16 @@ pub async fn handle<'a>(
 
         let increment = get_firebase_increment_for_reaction(reaction_interaction);
 
-        user.at("haha_count")
+        let response = user
+            .at("haha_count")
             .put(&increment)
             .await
             .map_err(|err| eyre!(err))?;
-    }
 
-    Ok(())
+        Ok(Some(response.data))
+    } else {
+        Ok(None)
+    }
 }
 
 #[cfg(test)]
