@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::types::{self, UserRecord};
-use anyhow::{anyhow, Result};
+use color_eyre::{eyre::eyre, Result};
 use poise::serenity_prelude::{User, UserId};
 
 // Displays your or another user's account creation date
@@ -30,7 +30,7 @@ pub async fn list(
         .finish()
         .get::<HashMap<UserId, UserRecord>>()
         .await
-        .map_err(|err| anyhow!(err))?;
+        .map_err(|err| eyre!(err))?;
 
     let user_haha_count = ctx
         .data()
@@ -39,7 +39,7 @@ pub async fn list(
         .at(&user.id.to_string())
         .get::<UserRecord>()
         .await
-        .map_err(|err| anyhow!(err))?
+        .map_err(|err| eyre!(err))?
         .haha_count;
 
     let mut users = users.into_iter();
@@ -123,14 +123,12 @@ pub async fn count(
         .at(&user.id.to_string())
         .at("haha_count");
 
-    let result = if let Ok(haha_count) = hahas.get::<u32>().await {
-        haha_count
-    } else {
-        0
-    };
+    let result = hahas.get::<u32>().await.unwrap_or(0);
 
     let reply = format!("{} has been awarded {} hahas", user.name, result);
 
     ctx.say(reply).await?;
     Ok(())
 }
+
+// TODO: Write tests for this horror show

@@ -9,11 +9,17 @@ default_job = "clippy"
 
 [jobs.check]
 command = ["cargo", "check", "--color", "always"]
+on_success = "job:format"
 need_stdout = false
 
 [jobs.check-all]
 command = ["cargo", "check", "--all-targets", "--color", "always"]
+on_success = "job:format"
 need_stdout = false
+
+[jobs.format]
+command = ["cargo", "fmt", "--", "--emit=files"]
+need_stdout=false
 
 [jobs.clippy]
 command = [
@@ -21,14 +27,21 @@ command = [
     "--all-targets",
     "--color", "always",
 ]
+on_success = "job:format"
 need_stdout = false
 
 [jobs.test]
-command = [
-    "cargo", "test", "--color", "always",
-    "--", "--color", "always", # see https://github.com/Canop/bacon/issues/124
-]
+command = [ "cargo", "test", "--color", "always" ]
+on_success = "job:format"
 need_stdout = true
+
+# [jobs.test]
+# command = [
+#   "cargo", "nextest", "run", "--color", "always",
+#   "--hide-progress-bar", "--failure-output", "final"
+# ]
+# on_success = "job:format"
+# need_stdout = true
 
 [jobs.doc]
 command = ["cargo", "doc", "--color", "always", "--no-deps"]

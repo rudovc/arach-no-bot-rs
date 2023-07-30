@@ -2,6 +2,8 @@ pub mod workaround;
 
 use firebase_rs as firebase;
 
+pub type IncrementMap = std::collections::HashMap<String, FirebaseIncrement>;
+
 pub struct Database {
     pub connection: firebase::Firebase,
 }
@@ -12,12 +14,16 @@ impl Database {
     }
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, serde::Serialize, serde::Deserialize, PartialEq)]
 pub struct FirebaseIncrement {
     increment: i32,
 }
 
 impl FirebaseIncrement {
+    pub fn new(amount: i32) -> FirebaseIncrement {
+        FirebaseIncrement { increment: amount }
+    }
+
     pub fn increment_by(amount: i32) -> std::collections::HashMap<String, FirebaseIncrement> {
         let mut map = std::collections::HashMap::new();
 
