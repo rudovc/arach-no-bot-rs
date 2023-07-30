@@ -10,7 +10,7 @@ pub mod types;
 async fn main() {
     #[cfg(feature = "staging")]
     {
-        dotenv::from_filename(".env.staging").ok();
+        dotenvy::from_filename(".env.staging").ok();
     }
 
     let database = database::get_database();
