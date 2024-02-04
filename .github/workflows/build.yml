@@ -18,6 +18,10 @@ jobs:
             vendor: unknown
             os: linux
             environment: -musleabihf
+          - arch: x86_64
+            vendor: unknown
+            os: linux
+            environment: -musl
 
     outputs:
       arch: ${{ matrix.arch }}
@@ -39,6 +43,7 @@ jobs:
         with:
           toolchain: stable
           target: ${{ matrix.arch }}-${{ matrix.vendor }}-${{ matrix.os }}${{ matrix.environment }}
+          default: true
           override: true
 
       - name: Cache build

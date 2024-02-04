@@ -20,18 +20,39 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build_release]
 
+    strategy:
+      matrix:
+        include:
+          - arch: armv7
+            vendor: unknown
+            os: linux
+            environment: -musleabihf
+            platform: arm/v7
+          - arch: x86_64
+            vendor: unknown
+            os: linux
+            environment: -musl
+            platform: amd64
+
+
     outputs:
-      tag: ${{ needs.build_release.outputs.tag }}
-      os: ${{ needs.build_release.outputs.os }}
+      arch: ${{ matrix.arch }}
+      vendor: ${{ matrix.vendor }}
+      os: ${{ matrix.os }}
+      environment: ${{ matrix.environment }}
+
+    env:
+      tag: ${{ matrix.arch }}-${{ matrix.vendor }}-${{ matrix.os }}${{ matrix.environment }}
+      os: ${{ matrix.os }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Download the ${{ needs.build_release.outputs.tag }} binary
+      - name: Download the ${{ env.tag }} binary
         uses: actions/download-artifact@v3
         with:
-          name: ${{ needs.build_release.outputs.tag }}_binary
+          name: ${{ env.tag }}_binary
 
       - name: Log in to Dockerhub
         uses: docker/login-action@v2
@@ -40,7 +61,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build the Docker image
-        run: docker buildx build . --file Dockerfile --tag ${{ secrets.DOCKERHUB_TAG }}-${{ needs.build_release.outputs.tag }} --platform=linux/arm/v7
+        run: docker buildx build . --file Dockerfile-${{ env.tag }} --tag ${{ secrets.DOCKERHUB_TAG }}-${{ env.tag }} --platform=${{ matrix.os }}/${{ matrix.platform }}
 
       - name: Push built image to Dockerhub
-        run: docker push ${{ secrets.DOCKERHUB_TAG }}-${{ needs.build_release.outputs.tag }}
+        run: docker push ${{ secrets.DOCKERHUB_TAG }}-${{ env.tag }}
