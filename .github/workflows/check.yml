@@ -2,9 +2,9 @@ name: Build and test
 on:
   workflow_call:
   push:
-    branches: ['main']
+    branches: ["main"]
   pull_request:
-    branches: ['main']
+    branches: ["main"]
 
 env:
   CARGO_TERM_COLOR: always
@@ -17,19 +17,19 @@ jobs:
 
     steps:
       - name: Set up toolchain
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
 
       - uses: davidB/rust-cargo-make@v1
-      
+
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Cache build
         uses: Swatinem/rust-cache@v2
         with:
-          shared-key: 'build_and_test'
+          shared-key: "build_and_test"
 
       - name: Build
         run: cargo build

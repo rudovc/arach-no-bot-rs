@@ -34,7 +34,6 @@ jobs:
             environment: -musl
             platform: amd64
 
-
     outputs:
       arch: ${{ matrix.arch }}
       vendor: ${{ matrix.vendor }}
@@ -47,7 +46,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Download the ${{ env.tag }} binary
         uses: actions/download-artifact@v3
