@@ -32,7 +32,7 @@ fn get_firebase_increment_for_reaction(reaction_interaction: ReactionInteraction
     }
 }
 
-pub async fn handle<'a>(
+pub async fn handle(
     reaction_interaction: ReactionInteraction,
     reaction: &Reaction,
     ctx: impl CacheHttp + std::convert::AsRef<Cache> + std::convert::AsRef<Http>,
