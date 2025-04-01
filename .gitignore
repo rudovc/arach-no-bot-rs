@@ -3,4 +3,7 @@
 /target
 .env
 .env.staging
+.env.development
+.env.production
+dockerenv
 log

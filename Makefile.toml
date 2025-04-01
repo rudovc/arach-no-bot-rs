@@ -21,8 +21,13 @@ command = "cargo"
 args = ["test", "--features=staging"]
 
 [tasks.test]
-dependencies = [
-    "test-staging",
-    "test-prod"
-]
+dependencies = ["test-staging", "test-prod"]
 
+[tasks.run-staging]
+command = "cargo"
+args = ["run", "--features=staging"]
+
+[tasks.dev-staging]
+command = "cargo"
+args = ["run", "--features=staging"]
+watch = true
