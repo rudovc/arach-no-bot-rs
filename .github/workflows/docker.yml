@@ -39,7 +39,7 @@ jobs:
       vendor: ${{ matrix.vendor }}
       os: ${{ matrix.os }}
       environment: ${{ matrix.environment }}
-
+      tag: ${{ matrix.arch }}-${{ matrix.vendor }}-${{ matrix.os }}${{ matrix.environment }}
     env:
       tag: ${{ matrix.arch }}-${{ matrix.vendor }}-${{ matrix.os }}${{ matrix.environment }}
       os: ${{ matrix.os }}
