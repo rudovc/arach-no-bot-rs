@@ -27,7 +27,7 @@ pub enum ReactionInteraction {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     use test_case::test_case;
 
     #[test_case(Some(0), "Test User", 0 ; "When user has 0 hahas")]

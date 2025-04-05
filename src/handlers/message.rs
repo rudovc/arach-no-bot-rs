@@ -161,6 +161,11 @@ mod tests {
         "when there's a regular www r/dtg link"
     )]
     #[test_case(
+        "Includes the Bad Word! https://reddit.com/r/DestinyTheGame/",
+        true ;
+        "when there's a regular r/dtg link with no www"
+    )]
+    #[test_case(
         "Includes the Bad Word! https://old.reddit.com/r/DestinyTheGame/%E2%9C%93",
         true ;
         "when there's an old reddit r/dtg link"
@@ -168,28 +173,51 @@ mod tests {
     fn test_flag_messages_with_r_dtg(test_content: &str, expect: bool) {
         assert_eq!(check_string_for_r_drg(test_content).unwrap(), expect);
     }
-
     #[test_case(
-        "Does not include the Elon Musk Bad Word",
-        false ;
-        "when there's no twitter link"
-    )]
-    #[test_case(
-        "Includes the Elon Musk Bad Word! https://twitter.com/SomeRandomTwitterHandler/status/12345678910",
+        "Includes the Elon Musk Bad Word! https://www.twitter.com/SomeRandomTwitterHandler/status/12345678910",
         true ;
         "when there's a regular www twitter link"
     )]
     #[test_case(
         "Includes the Elon Musk Bad Word! https://t.co/abc123def456",
         true ;
-        "when there's a shortened twitter link (t.co)"
+        "when there's a shortened twitter link (t.co) with no www"
     )]
     #[test_case(
             "Includes the Elon Musk Bad Word! https://x.com/home",
         true ;
-        "when there's an X (yuck!) link"
+        "when there's an X (yuck!) link with no www"
+    )]
+    #[test_case(
+        "Includes the Elon Musk Bad Word! https://twitter.com/SomeRandomTwitterHandler/status/12345678910",
+        true ;
+        "when there's a regular twitter link with no www"
+    )]
+    #[test_case(
+            "Includes the Elon Musk Bad Word! https://www.x.com/home",
+        true ;
+        "when there's an X (yuck!) link with www"
     )]
     fn test_flag_messages_with_twitter_links(test_content: &str, expect: bool) {
         assert_eq!(check_string_for_twitter(test_content).unwrap(), expect);
+    }
+    #[test_case(
+        "Does not include Any Bad Word",
+        false ;
+        "when there's no link at all"
+    )]
+    #[test_case(
+        "Does not include Any Bad Word https://google.com",
+        false ;
+        "when there's a link with no www but it's not bad"
+    )]
+    #[test_case(
+        "Does not include Any Bad Word https://www.google.com",
+        false ;
+        "when there's a link with www but it's not bad"
+    )]
+    fn test_do_not_flag_messages_with_allowed_liunks(test_content: &str, expect: bool) {
+        assert_eq!(check_string_for_twitter(test_content).unwrap(), expect);
+        assert_eq!(check_string_for_r_drg(test_content).unwrap(), expect);
     }
 }
