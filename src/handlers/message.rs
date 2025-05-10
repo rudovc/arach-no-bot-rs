@@ -5,6 +5,12 @@ use color_eyre::Result;
 
 use poise::serenity_prelude::{CacheHttp, EmojiId, Guild, Message, ReactionType};
 
+enum BadWord {
+    Twitter,
+    DestinyTheGame,
+    None,
+}
+
 fn check_string_for_twitter(content: &str) -> Result<bool, regex::Error> {
     Ok(regex::Regex::new(constants::TWITTER_REGEX)?.is_match(content))
 }
@@ -17,13 +23,15 @@ fn check_message_content_for_bad_words(
     channel_id: u64,
     content: &str,
     testing: bool,
-) -> Result<bool> {
+) -> Result<BadWord> {
     let has_twitter_links = check_string_for_twitter(content)?;
 
     if has_twitter_links {
-        Ok(has_twitter_links)
+        Ok(BadWord::Twitter)
+    } else if check_message_content_in_channel_for_r_dtg(channel_id, content, testing)? {
+        Ok(BadWord::DestinyTheGame)
     } else {
-        check_message_content_in_channel_for_r_dtg(channel_id, content, testing)
+        Ok(BadWord::None)
     }
 }
 
@@ -59,23 +67,42 @@ pub async fn handle(
         is_testing_channel,
     )?;
 
-    if result {
-        let guild: Guild = message
-            .guild(&ctx)
-            .ok_or_else(|| eyre!("Did not find guild for message id: {}.", message.id))?;
+    match result {
+        BadWord::DestinyTheGame => {
+            let guild: Guild = message
+                .guild(&ctx)
+                .ok_or_else(|| eyre!("Did not find guild for message id: {}.", message.id))?;
 
-        let emoji = if is_testing_channel {
-            ReactionType::Unicode("🤖".to_owned())
-        } else {
-            ReactionType::from(
-                guild
-                    .emoji(&ctx, EmojiId::from(constants::HMM_EMOJI_ID))
-                    .await?,
-            )
-        };
+            let emoji = if is_testing_channel {
+                ReactionType::Unicode("🤖".to_owned())
+            } else {
+                ReactionType::from(
+                    guild
+                        .emoji(&ctx, EmojiId::from(constants::HMM_EMOJI_ID))
+                        .await?,
+                )
+            };
 
-        message.react(&ctx, emoji).await?;
+            message.react(&ctx, emoji).await?;
+        }
+        BadWord::Twitter => {
+            let author = &message.author;
+            author
+                .direct_message(&ctx, |create_message| {
+                    let author_name = &author.name;
+                    let reply_content = format!("{}, it seems that you've used a Twitter/X link. It has been automatically deleted. Check the server's rule 13 for more info.", author_name);
+
+                    create_message.content(reply_content);
+
+                    create_message
+                })
+                .await?;
+
+            message.delete(&ctx).await?;
+        }
+        BadWord::None => (),
     }
+
     Ok(())
 }
 
