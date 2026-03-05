@@ -10,7 +10,6 @@ args = ["clean", "--release"]
 [tasks.build]
 command = "cargo"
 args = ["build"]
-dependencies = ["clean"]
 
 [tasks.test-prod]
 command = "cargo"
@@ -31,3 +30,14 @@ args = ["run", "--features=staging"]
 command = "cargo"
 args = ["run", "--features=staging"]
 watch = true
+
+[tasks.check-licenses]
+command = "cargo"
+args = ["license", "-o", "licenses.txt"]
+
+[tasks.check-deps]
+command = "cargo"
+args = ["deny", "check"]
+
+[tasks.check]
+dependencies = ["check-licenses", "check-deps"]
