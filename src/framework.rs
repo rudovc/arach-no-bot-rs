@@ -3,7 +3,6 @@ use crate::database;
 use crate::handlers;
 use color_eyre::eyre::Error;
 use firebase_rs as firebase;
-use poise::serenity_prelude as serenity;
 
 pub async fn get_framework(
     database: firebase::Firebase,
@@ -14,14 +13,6 @@ pub async fn get_framework(
             event_handler: handlers::event,
             ..Default::default()
         })
-        .token(
-            std::env::var("DISCORD_TOKEN")
-                .expect("DISCORD_TOKEN environment variable should be present."),
-        )
-        .intents(
-            serenity::GatewayIntents::non_privileged()
-                .union(serenity::GatewayIntents::privileged()),
-        )
         .setup(|ctx, _ready, framework| {
             Box::pin(async move {
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;

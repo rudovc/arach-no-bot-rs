@@ -1,8 +1,18 @@
 use crate::constants;
-use crate::database::{workaround::WithPutRequest, Database, FirebaseIncrement, IncrementMap};
-use crate::types::{ReactionInteraction, UserRecord};
-use color_eyre::{eyre::eyre, Result};
-use poise::serenity_prelude::{Cache, CacheHttp, Http, Reaction, ReactionType, UserId};
+use crate::database::workaround::WithPutRequest;
+use crate::database::Database;
+use crate::database::FirebaseIncrement;
+use crate::database::IncrementMap;
+use crate::types::ReactionInteraction;
+use crate::types::UserRecord;
+use color_eyre::eyre::eyre;
+use color_eyre::Result;
+use poise::serenity_prelude::Cache;
+use poise::serenity_prelude::CacheHttp;
+use poise::serenity_prelude::Http;
+use poise::serenity_prelude::Reaction;
+use poise::serenity_prelude::ReactionType;
+use poise::serenity_prelude::UserId;
 
 fn match_haha_emoji(emoji_id: &u64) -> Result<()> {
     if !constants::HAHA_EMOJI_IDS.contains(emoji_id) {
@@ -41,7 +51,7 @@ pub async fn handle(
     if let ReactionType::Custom { id: emoji_id, .. } = &reaction.emoji {
         let message = reaction.message(ctx).await?;
 
-        match_haha_emoji(emoji_id.as_u64())?;
+        match_haha_emoji(&emoji_id.get())?;
         check_for_self_reaction(reaction.user_id, message.author.id)?;
 
         let user = database

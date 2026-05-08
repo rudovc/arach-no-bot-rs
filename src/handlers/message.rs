@@ -3,7 +3,11 @@ use crate::staging::is_testing_channel;
 use color_eyre::eyre::eyre;
 use color_eyre::Result;
 
-use poise::serenity_prelude::{CacheHttp, EmojiId, Guild, Message, ReactionType};
+use poise::serenity_prelude::Context;
+use poise::serenity_prelude::CreateMessage;
+use poise::serenity_prelude::EmojiId;
+use poise::serenity_prelude::Message;
+use poise::serenity_prelude::ReactionType;
 
 enum BadWord {
     Twitter,
@@ -52,12 +56,7 @@ fn check_message_content_in_channel_for_r_dtg(
     }
 }
 
-pub async fn handle(
-    message: Message,
-    ctx: impl CacheHttp
-        + std::convert::AsRef<poise::serenity_prelude::Cache>
-        + std::convert::AsRef<poise::serenity_prelude::Http>,
-) -> Result<()> {
+pub async fn handle(message: Message, ctx: Context) -> Result<()> {
     let Message { channel_id, .. } = message;
 
     let is_testing_channel = is_testing_channel(message.channel_id);
@@ -69,8 +68,8 @@ pub async fn handle(
 
     match result {
         BadWord::DestinyTheGame => {
-            let guild: Guild = message
-                .guild(&ctx)
+            let guild = message
+                .guild(&ctx.cache).map(|g| g.clone())
                 .ok_or_else(|| eyre!("Did not find guild for message id: {}.", message.id))?;
 
             let emoji = if is_testing_channel {
@@ -79,7 +78,7 @@ pub async fn handle(
                 ReactionType::from(
                     guild
                         .emoji(&ctx, EmojiId::from(constants::HMM_EMOJI_ID))
-                        .await?,
+                        .await?
                 )
             };
 
@@ -88,14 +87,9 @@ pub async fn handle(
         BadWord::Twitter => {
             let author = &message.author;
             author
-                .direct_message(&ctx, |create_message| {
-                    let author_name = &author.name;
-                    let reply_content = format!("{}, it seems that you've used a Twitter/X link. It has been automatically deleted. Check the server's rule 13 for more info.", author_name);
-
-                    create_message.content(reply_content);
-
-                    create_message
-                })
+                .direct_message(&ctx, CreateMessage::new().content(
+                    format!("{}, it seems that you've used a Twitter/X link. It has been automatically deleted. Check the server's rule 13 for more info.", &author.name)
+                )) 
                 .await?;
 
             message.delete(&ctx).await?;

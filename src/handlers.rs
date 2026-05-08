@@ -4,40 +4,40 @@ pub mod reaction;
 use crate::database;
 use crate::staging;
 use crate::types::ReactionInteraction;
-use color_eyre::{
-    eyre::{eyre, Error},
-    Result,
-};
-use poise::event::Event;
-use poise::serenity_prelude as serenity;
-use tracing::{error, info};
+use color_eyre::eyre::eyre;
+use color_eyre::eyre::Error;
+use color_eyre::Result;
+use poise::serenity_prelude::Context;
+use poise::serenity_prelude::FullEvent;
+use tracing::error;
+use tracing::info;
 
 pub fn event<'a>(
-    ctx: &'a serenity::Context,
-    event: &'a poise::Event<'a>,
+    ctx: &'a Context,
+    event: &'a FullEvent,
     framework: poise::FrameworkContext<'a, database::Database, Error>,
     _: &'a database::Database,
 ) -> poise::BoxFuture<'a, Result<()>> {
     Box::pin(async move {
         match event {
-            Event::Message { new_message } => {
+            FullEvent::Message { new_message } => {
                 if !staging::is_allowed_channel_in_current_mode(new_message.channel_id) {
                     let channel = &new_message.channel(&ctx.http).await?.id();
                     let user = &new_message.author;
 
-                    return Err(eyre!("Event fired in disallowed channel for current mode.\nChannel: {}\nUser: {}", channel.as_u64(), user.name));
+                    return Err(eyre!("Event fired in disallowed channel for current mode.\nChannel: {}\nUser: {}", channel.get(), user.name));
                 }
 
-                message::handle(new_message.to_owned(), ctx).await?;
+                message::handle(new_message.to_owned(), ctx.clone()).await?;
             }
-            Event::ReactionAdd {
+            FullEvent::ReactionAdd {
                 add_reaction: reaction,
             } => {
                 if !staging::is_allowed_channel_in_current_mode(reaction.channel_id) {
                     let giver = &reaction.member;
 
                     return Err(eyre!("Event fired in disallowed channel for current mode.\nChannel: {}\nGiver: {}", reaction.channel_id, giver.as_ref()
-                    .and_then(|m| m.user.as_ref().map(|u| &u.name))
+                    .map(|m| &m.user.name)
                     .unwrap_or(&"None".to_owned()),));
                 }
 
@@ -69,14 +69,14 @@ pub fn event<'a>(
                     error!("{}", result.unwrap_err().to_string());
                 }
             }
-            Event::ReactionRemove {
+            FullEvent::ReactionRemove {
                 removed_reaction: reaction,
             } => {
                 if !staging::is_allowed_channel_in_current_mode(reaction.channel_id) {
                     let giver = &reaction.member;
 
                     return Err(eyre!("Event fired in disallowed channel for current mode.\nChannel: {}\nGiver: {}", reaction.channel_id, giver.as_ref()
-                    .and_then(|m| m.user.as_ref().map(|u| &u.name))
+                    .map(|m| &m.user.name)
                     .unwrap_or(&"None".to_owned()),));
                 }
 

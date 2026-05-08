@@ -3,7 +3,6 @@ name = "arachnobot"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
-license-file = "./LICENSE"
 
 [profile.dev]
 opt-level = 0
@@ -20,21 +19,21 @@ opt-level = 3
 staging = []
 
 [dependencies]
-poise = "^0.5.6"
-regex = "^1.9.6"
-serde = { version = "^1.0.188", features = ["derive"] }
-tokio = { version = "^1.32.0", features = ["rt-multi-thread", "macros"] }
+poise = "^0.6.2"
+regex = "^1.12.3"
+serde = { version = "^1.0.228", features = ["derive"] }
+tokio = { version = "^1.52.2", features = ["rt-multi-thread", "macros"] }
 openssl = { version = "^0.10", features = ["vendored"] }
-serde_json = "^1.0.107"
-firebase-rs = "^2.0.8"
-reqwest = { version = "^0.11.21", features = ["json"] }
-async-trait = "^0.1.73"
+serde_json = "^1.0.149"
+firebase-rs = "^2.2.5"
+reqwest = { version = "^0.13.3", features = ["json"] }
+async-trait = "^0.1.89"
 dotenvy = "^0.15.7"
-test-case = "^3.2.1"
-tracing = "^0.1.37"
-color-eyre = "^0.6.2"
-tracing-subscriber = { version = "^0.3.17", features = ["fmt", "std"] }
-tracing-appender = "^0.2.2"
+test-case = "^3.3.1"
+tracing = "^0.1.44"
+color-eyre = "^0.6.5"
+tracing-subscriber = { version = "^0.3.23", features = ["fmt", "std"] }
+tracing-appender = "^0.2.5"
 
 [dev-dependencies]
-mockall = "0.11.4"
+mockall = "0.14.0"

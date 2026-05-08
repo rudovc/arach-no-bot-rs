@@ -12,7 +12,7 @@ pub fn is_testing_channel(channel_id: ChannelId) -> bool {
         private_testing_id,
     ];
 
-    testing_ids.contains(&Some(*channel_id.as_u64()))
+    testing_ids.contains(&Some(channel_id.get()))
 }
 
 pub fn is_allowed_channel_in_current_mode(channel_id: ChannelId) -> bool {
