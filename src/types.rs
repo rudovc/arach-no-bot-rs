@@ -1,4 +1,5 @@
 use crate::database;
+use crate::framework::Metadata;
 use color_eyre::eyre::Error;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
@@ -17,7 +18,7 @@ impl UserRecord {
     }
 }
 
-pub type PoiseContext<'a> = poise::Context<'a, database::Database, Error>;
+pub type PoiseContext<'a> = poise::Context<'a, Metadata, Error>;
 
 pub enum ReactionInteraction {
     Add,

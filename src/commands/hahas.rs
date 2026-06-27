@@ -1,8 +1,11 @@
 use std::collections::HashMap;
 
-use crate::types::{self, UserRecord};
-use color_eyre::{eyre::eyre, Result};
-use poise::serenity_prelude::{User, UserId};
+use crate::types::UserRecord;
+use crate::types::{self};
+use color_eyre::eyre::eyre;
+use color_eyre::Result;
+use poise::serenity_prelude::User;
+use poise::serenity_prelude::UserId;
 
 // Displays your or another user's account creation date
 #[poise::command(slash_command, subcommands("count", "list"))]
@@ -22,6 +25,7 @@ pub async fn list(
 
     let users = ctx
         .data()
+        .database
         .connection
         .at("users")
         .with_params()
@@ -34,6 +38,7 @@ pub async fn list(
 
     let user_haha_count = ctx
         .data()
+        .database
         .connection
         .at("users")
         .at(&user.id.to_string())
@@ -118,6 +123,7 @@ pub async fn count(
 
     let hahas = ctx
         .data()
+        .database
         .connection
         .at("users")
         .at(&user.id.to_string())

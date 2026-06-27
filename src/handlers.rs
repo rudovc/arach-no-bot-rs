@@ -1,7 +1,7 @@
 pub mod message;
 pub mod reaction;
 
-use crate::database;
+use crate::framework::Metadata;
 use crate::staging;
 use crate::types::ReactionInteraction;
 use color_eyre::eyre::eyre;
@@ -15,8 +15,8 @@ use tracing::info;
 pub fn event<'a>(
     ctx: &'a Context,
     event: &'a FullEvent,
-    framework: poise::FrameworkContext<'a, database::Database, Error>,
-    _: &'a database::Database,
+    framework: poise::FrameworkContext<'a, Metadata, Error>,
+    _: &'a Metadata,
 ) -> poise::BoxFuture<'a, Result<()>> {
     Box::pin(async move {
         match event {
@@ -28,7 +28,12 @@ pub fn event<'a>(
                     return Err(eyre!("Event fired in disallowed channel for current mode.\nChannel: {}\nUser: {}", channel.get(), user.name));
                 }
 
-                message::handle(new_message.to_owned(), ctx.clone()).await?;
+                message::handle(
+                    new_message.to_owned(),
+                    ctx.clone(),
+                    framework.user_data.environment.clone(),
+                )
+                .await?;
             }
             FullEvent::ReactionAdd {
                 add_reaction: reaction,

@@ -1,8 +1,9 @@
 use crate::constants;
+use crate::constants::Environment;
 use crate::database::workaround::WithPutRequest;
-use crate::database::Database;
 use crate::database::FirebaseIncrement;
 use crate::database::IncrementMap;
+use crate::framework::Metadata;
 use crate::types::ReactionInteraction;
 use crate::types::UserRecord;
 use color_eyre::eyre::eyre;
@@ -14,8 +15,8 @@ use poise::serenity_prelude::Reaction;
 use poise::serenity_prelude::ReactionType;
 use poise::serenity_prelude::UserId;
 
-fn match_haha_emoji(emoji_id: &u64) -> Result<()> {
-    if !constants::HAHA_EMOJI_IDS.contains(emoji_id) {
+fn match_haha_emoji(emoji_id: &u64, env: &Environment) -> Result<()> {
+    if !env.haha_emoji_ids.contains(emoji_id) {
         Err(eyre!("Emoji does not match haha emoji."))
     } else {
         Ok(())
@@ -46,13 +47,16 @@ pub async fn handle(
     reaction_interaction: ReactionInteraction,
     reaction: &Reaction,
     ctx: impl CacheHttp + std::convert::AsRef<Cache> + std::convert::AsRef<Http>,
-    database: &Database,
+    meta: &Metadata,
 ) -> Result<Option<String>> {
     if let ReactionType::Custom { id: emoji_id, .. } = &reaction.emoji {
         let message = reaction.message(ctx).await?;
 
-        match_haha_emoji(&emoji_id.get())?;
+        let env = &meta.environment;
+        match_haha_emoji(&emoji_id.get(), env)?;
         check_for_self_reaction(reaction.user_id, message.author.id)?;
+
+        let database = &meta.database;
 
         let user = database
             .connection
@@ -80,6 +84,7 @@ pub async fn handle(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::constants;
     use crate::types::ReactionInteraction;
     use std::collections::HashMap;
     use test_case::test_case;
@@ -98,7 +103,9 @@ mod tests {
         "when the emoji matches another external haha"
     )]
     fn test_matching_a_haha_emoji(emoji_id: u64, expect: bool) {
-        let result = match_haha_emoji(&emoji_id);
+        let env = constants::Environment::load();
+
+        let result = match_haha_emoji(&emoji_id, &env);
 
         assert_eq!(result.is_ok(), expect)
     }

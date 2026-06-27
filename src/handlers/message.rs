@@ -1,4 +1,5 @@
 use crate::constants;
+use crate::constants::Environment;
 use crate::staging::is_testing_channel;
 use color_eyre::eyre::eyre;
 use color_eyre::Result;
@@ -15,24 +16,31 @@ enum BadWord {
     None,
 }
 
-fn check_string_for_twitter(content: &str) -> Result<bool, regex::Error> {
-    Ok(regex::Regex::new(constants::TWITTER_REGEX)?.is_match(content))
+fn check_string_for_twitter(
+    content: &str,
+    env: &constants::Environment,
+) -> Result<bool, regex::Error> {
+    Ok(regex::Regex::new(&env.twitter_regex)?.is_match(content))
 }
 
-fn check_string_for_r_drg(content: &str) -> Result<bool, regex::Error> {
-    Ok(regex::Regex::new(constants::R_DTG_REGEX)?.is_match(content))
+fn check_string_for_r_drg(
+    content: &str,
+    env: &constants::Environment,
+) -> Result<bool, regex::Error> {
+    Ok(regex::Regex::new(&env.r_dtg_regex)?.is_match(content))
 }
 
 fn check_message_content_for_bad_words(
     channel_id: u64,
     content: &str,
     testing: bool,
+    env: &Environment,
 ) -> Result<BadWord> {
-    let has_twitter_links = check_string_for_twitter(content)?;
+    let has_twitter_links = check_string_for_twitter(content, env)?;
 
     if has_twitter_links {
         Ok(BadWord::Twitter)
-    } else if check_message_content_in_channel_for_r_dtg(channel_id, content, testing)? {
+    } else if check_message_content_in_channel_for_r_dtg(channel_id, content, testing, env)? {
         Ok(BadWord::DestinyTheGame)
     } else {
         Ok(BadWord::None)
@@ -43,10 +51,11 @@ fn check_message_content_in_channel_for_r_dtg(
     channel_id: u64,
     content: &str,
     testing: bool,
+    env: &Environment,
 ) -> Result<bool> {
     match (channel_id, testing) {
         (constants::channels::DENSITY_THE_GAME_ID, false) | (_, true) => {
-            let has_match = check_string_for_r_drg(content)?;
+            let has_match = check_string_for_r_drg(content, env)?;
 
             Ok(has_match)
         }
@@ -56,7 +65,7 @@ fn check_message_content_in_channel_for_r_dtg(
     }
 }
 
-pub async fn handle(message: Message, ctx: Context) -> Result<()> {
+pub async fn handle(message: Message, ctx: Context, env: Environment) -> Result<()> {
     let Message { channel_id, .. } = message;
 
     let is_testing_channel = is_testing_channel(message.channel_id);
@@ -64,6 +73,7 @@ pub async fn handle(message: Message, ctx: Context) -> Result<()> {
         channel_id.into(),
         &message.content,
         is_testing_channel,
+        &env,
     )?;
 
     match result {
@@ -77,7 +87,7 @@ pub async fn handle(message: Message, ctx: Context) -> Result<()> {
             } else {
                 ReactionType::from(
                     guild
-                        .emoji(&ctx, EmojiId::from(constants::HMM_EMOJI_ID))
+                        .emoji(&ctx, EmojiId::from(env.hmm_emoji_id))
                         .await?
                 )
             };
@@ -116,7 +126,7 @@ mod tests {
         Expect::Result(false),
         "Does not include the Bad Word!",
         false ;
-        "when there's no mention of r/dtg"
+        "when there's no mention of r/dtg" 
     )]
     #[test_case(
         constants::channels::DENSITY_THE_GAME_ID,
@@ -153,10 +163,12 @@ mod tests {
         content: &str,
         testing: bool,
     ) {
+        let env = constants::Environment::load();
+
         match expect {
             Expect::Result(expect) => {
                 let result =
-                    check_message_content_in_channel_for_r_dtg(channel_id, content, testing);
+                    check_message_content_in_channel_for_r_dtg(channel_id, content, testing, &env);
                 assert_eq!(
                     result.expect("Result should not error when provided a valid channel."),
                     expect
@@ -164,7 +176,7 @@ mod tests {
             }
             Expect::Error() => {
                 let result =
-                    check_message_content_in_channel_for_r_dtg(channel_id, content, testing);
+                    check_message_content_in_channel_for_r_dtg(channel_id, content, testing, &env);
                 assert!(result
                     .is_err_and(|e| e.to_string().contains("is not in monitored channel list")));
             }
@@ -192,7 +204,9 @@ mod tests {
         "when there's an old reddit r/dtg link"
     )]
     fn test_flag_messages_with_r_dtg(test_content: &str, expect: bool) {
-        assert_eq!(check_string_for_r_drg(test_content).unwrap(), expect);
+        let env = constants::Environment::load();
+
+        assert_eq!(check_string_for_r_drg(test_content, &env).unwrap(), expect);
     }
     #[test_case(
         "Includes the Elon Musk Bad Word! https://www.twitter.com/SomeRandomTwitterHandler/status/12345678910",
@@ -220,7 +234,12 @@ mod tests {
         "when there's an X (yuck!) link with www"
     )]
     fn test_flag_messages_with_twitter_links(test_content: &str, expect: bool) {
-        assert_eq!(check_string_for_twitter(test_content).unwrap(), expect);
+        let env = constants::Environment::load();
+
+        assert_eq!(
+            check_string_for_twitter(test_content, &env).unwrap(),
+            expect
+        );
     }
     #[test_case(
         "Does not include Any Bad Word",
@@ -238,7 +257,12 @@ mod tests {
         "when there's a link with www but it's not bad"
     )]
     fn test_do_not_flag_messages_with_allowed_liunks(test_content: &str, expect: bool) {
-        assert_eq!(check_string_for_twitter(test_content).unwrap(), expect);
-        assert_eq!(check_string_for_r_drg(test_content).unwrap(), expect);
+        let env = constants::Environment::load();
+
+        assert_eq!(
+            check_string_for_twitter(test_content, &env).unwrap(),
+            expect
+        );
+        assert_eq!(check_string_for_r_drg(test_content, &env).unwrap(), expect);
     }
 }
