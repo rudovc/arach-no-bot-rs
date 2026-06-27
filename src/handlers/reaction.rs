@@ -104,7 +104,7 @@ mod tests {
     }
 
     #[test_case(
-        Some(UserId::from(0)), UserId::from(1), true ; "when the user IDs don't match"
+        Some(UserId::from(7)), UserId::from(1), true ; "when the user IDs don't match"
     )]
     #[test_case(Some(UserId::from(4799853325)), UserId::from(6381533619), true)]
     #[test_case(Some(UserId::from(9100277759)), UserId::from(9316850468), true)]
