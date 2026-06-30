@@ -1,4 +1,3 @@
-use crate::database;
 use crate::framework::Metadata;
 use color_eyre::eyre::Error;
 
