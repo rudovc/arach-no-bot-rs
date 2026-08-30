@@ -7,3 +7,5 @@
 .env.production
 dockerenv
 log
+
+.devenv/
