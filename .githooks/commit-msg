@@ -45,6 +45,7 @@ NC=
 BRANCH_NAME=$(git symbolic-ref --short HEAD)
 MASTER_REGEX='^(:?main|master)$'
 HOTFIX_REGEX='^(\[[Hh][Ff]\]|[hH]otfix)'
+MATCH_BRANCH_NUMBER=$(git config --bool --get hooks.goodcommit.matchBranchNumber || echo false)
 
 # Main branch exception: if branch is main and message starts with hotfix
 [[ "$BRANCH_NAME" =~ $MASTER_REGEX ]] && [[ "$COMMIT_MSG" =~ $HOTFIX_REGEX ]] && exit 0
@@ -201,7 +202,7 @@ validate_commit_message() {
 
   ISSUE_NUMBER_REGEX="(\#$BRANCH_NUMBER)|(\[$BRANCH_NUMBER\])|(FCK-$BRANCH_NUMBER:)"
 
-  if ! $git_failed; then
+  if [[ $MATCH_BRANCH_NUMBER == true ]] && ! $git_failed; then
     [[ $COMMIT_SUBJECT =~ $ISSUE_NUMBER_REGEX ]]
     test $? -eq 0 || add_error 1 "Match issue tag with the branch number $BRANCH_NUMBER"
   fi
