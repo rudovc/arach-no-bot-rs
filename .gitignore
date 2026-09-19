@@ -9,3 +9,5 @@ dockerenv
 log
 
 .devenv/
+
+.raddbg

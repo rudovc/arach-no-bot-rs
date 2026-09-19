@@ -7,6 +7,10 @@ license = "MIT"
 [profile.dev]
 opt-level = 0
 
+[profile.dev-rad]
+inherits = "dev"
+debug = 1
+
 [profile.dev.package.backtrace]
 opt-level = 3
 

@@ -192,10 +192,14 @@ validate_commit_message() {
   # ------------------------------------------------------------------------------
 
   ISSUE_TAG_REGEX='[[:upper:]]*([# -][[:digit:]]+)|(\[[[:digit:]]+\])'
+  CONVENTIONAL_COMMIT_REGEX='^[[:lower:]][[:lower:]-]*(\([^)]*\))?!?:[[:space:]]+'
   has_issue_tag=false
+  has_conventional_commit=false
 
   if [[ $COMMIT_SUBJECT =~ $ISSUE_TAG_REGEX ]]; then
     has_issue_tag=true
+  elif [[ $COMMIT_SUBJECT =~ $CONVENTIONAL_COMMIT_REGEX ]]; then
+    has_conventional_commit=true
   else
     add_warning 1 "Include an issue tag in the subject line"
   fi
@@ -210,14 +214,16 @@ validate_commit_message() {
   # 4. Capitalize the subject line
   # ------------------------------------------------------------------------------
 
-  if $has_issue_tag; then
-    CAPITALIZE_LINE_REGEX="($ISSUE_TAG_REGEX)[:]?[[:space:]]?([[:upper:]]{1}[[:lower:]])"
-  else
-    CAPITALIZE_LINE_REGEX='^[[:upper:]]{1}[^[:upper:]]'
-  fi
+  if ! $has_conventional_commit; then
+    if $has_issue_tag; then
+      CAPITALIZE_LINE_REGEX="($ISSUE_TAG_REGEX)[:]?[[:space:]]?([[:upper:]]{1}[[:lower:]])"
+    else
+      CAPITALIZE_LINE_REGEX='^[[:upper:]]{1}[^[:upper:]]'
+    fi
 
-  [[ ${COMMIT_SUBJECT} =~ $CAPITALIZE_LINE_REGEX ]]
-  test $? -eq 0 || add_warning 1 "Capitalize the subject line"
+    [[ ${COMMIT_SUBJECT} =~ $CAPITALIZE_LINE_REGEX ]]
+    test $? -eq 0 || add_warning 1 "Capitalize the subject line"
+  fi
 
   # 5. Do not end the subject line with a period
   # ------------------------------------------------------------------------------

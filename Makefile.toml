@@ -11,6 +11,20 @@ args = ["clean", "--release"]
 command = "cargo"
 args = ["build"]
 
+[tasks.build-rad]
+command = "cargo"
+args = ["build", "--profile", "dev-rad"]
+
+[tasks.debug]
+dependencies = ["build-rad"]
+command = "sh"
+args = ["-c", "if command -v raddbg >/dev/null 2>&1; then raddbg --project:./.raddbg target/dev-rad/arachnobot; else cargo make debug-cli; fi"]
+
+[tasks.debug-cli]
+dependencies = ["build-rad"]
+command = "sh"
+args = ["-c", "if command -v nnd >/dev/null 2>&1; then nnd target/dev-rad/arachnobot; elif command -v gdb >/dev/null 2>&1; then gdb target/dev-rad/arachnobot; elif command -v lldb >/dev/null 2>&1; then lldb target/dev-rad/arachnobot; else echo 'No CLI debugger found.' >&2; exit 1; fi"]
+
 [tasks.test-prod]
 command = "cargo"
 args = ["test"]
