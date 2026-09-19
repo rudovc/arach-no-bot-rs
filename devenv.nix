@@ -8,6 +8,7 @@
   env.LDFLAGS = "";
 
   packages = [
+    pkgs.gitleaks
     pkgs.bacon
     pkgs.cargo-deny
     pkgs.cargo-license

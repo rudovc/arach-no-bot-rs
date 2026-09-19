@@ -1,0 +1,9 @@
+#!/bin/sh
+
+root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+tagfile=$(git rev-parse --git-path tags 2>/dev/null) || exit 0
+(
+    cd "$root" || exit
+    git ls-files -co --exclude-standard |
+        ctags -L - -f "$tagfile" --exclude='*.stp' --exclude='*.ifc' --map-TypeScript=+.tsx
+) >/dev/null 2>&1 &
